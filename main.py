@@ -65,6 +65,7 @@ def main():
 
 			if response.status_code != 200:
 				logging.warning(f"Failed to fetch user info for user id {user_id}: {response.status_code} - {response.content.decode('utf-8')}")
+				continue
 
 			# Convert stats to workable format
 			data = response.json()
