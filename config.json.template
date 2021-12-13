@@ -1,0 +1,9 @@
+{
+	"client_id": "",
+	"client_secret": 60,
+	"refresh_interval_seconds": "60",
+	"user_ids": [
+		"",
+		""
+	]
+}

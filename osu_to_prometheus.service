@@ -1,0 +1,14 @@
+[Unit]
+Description=osu! user stats to prometheus
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+DynamicUser=yes
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/path/to/project/osu_to_prometheus
+ExecStart=/usr/bin/python3 main.py
+
+[Install]
+WantedBy=multi-user.target
