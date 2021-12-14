@@ -47,6 +47,15 @@ def get_token(config):
 	return response.json()["access_token"]
 
 
+def request_user_data(access_token, user_id):
+	response = requests.get(
+		f"{API_URL}/users/{user_id}/osu",
+		headers={"Authorization": f"Bearer {access_token}"},
+		params={"key": "id"}
+	)
+	return response
+
+
 def main():
 	logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 	with open("config.json", "r") as fh:
@@ -57,11 +66,13 @@ def main():
 
 	while True:
 		for user_id in config["user_ids"]:
-			response = requests.get(
-				f"{API_URL}/users/{user_id}/osu",
-				headers={"Authorization": f"Bearer {access_token}"},
-				params={"key": "id"}
-			)
+			response = request_user_data(access_token, user_id)
+
+			if response.status_code == 401:
+				# Token probably invalid, refresh and retry
+				logging.warning("Authentication failed, trying new token...")
+				access_token = get_token(config)
+				response = request_user_data(access_token, user_id)
 
 			if response.status_code != 200:
 				logging.warning(f"Failed to fetch user info for user id {user_id}: {response.status_code} - {response.content.decode('utf-8')}")
