@@ -1,7 +1,8 @@
 {
 	"client_id": "",
 	"client_secret": 60,
-	"refresh_interval_seconds": "60",
+	"refresh_interval_seconds": 60,
+	"max_intervals_with_errors": 10,
 	"user_ids": [
 		"",
 		""

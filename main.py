@@ -30,6 +30,22 @@ gauges = {
 }
 
 
+class ErrorTracker:
+	def __init__(self, max_intervals_with_errors):
+		self.intervals_with_errors = 0
+		self.max_intervals_with_errors = max_intervals_with_errors
+
+	def process_error(self, msg: str):
+		logging.error(msg)
+		self.intervals_with_errors += 1
+		if self.intervals_with_errors > self.max_intervals_with_errors:
+			logging.critical("Maximum number of interval with errors exceeded, exiting.")
+			exit(1)
+
+	def reset(self):
+		self.intervals_with_errors = 0
+
+
 def get_token(config):
 	response = requests.post(
 		f"{BASEURL}/oauth/token",
@@ -61,12 +77,18 @@ def main():
 	with open("config.json", "r") as fh:
 		config = json.load(fh)
 
+	error_tracker = ErrorTracker(config["max_intervals_with_errors"])
+
 	start_http_server(config["port"])
 	access_token = get_token(config)
 
 	while True:
 		for user_id in config["user_ids"]:
-			response = request_user_data(access_token, user_id)
+			try:
+				response = request_user_data(access_token, user_id)
+			except requests.RequestException as e:
+				error_tracker.process_error(f"Exception on user data request, aborting update: {e}")
+				break
 
 			if response.status_code == 401:
 				# Token probably invalid, refresh and retry
@@ -74,9 +96,15 @@ def main():
 				access_token = get_token(config)
 				response = request_user_data(access_token, user_id)
 
+				if response.status_code == 401:
+					error_tracker.process_error(f"Authentication still denied after fetching new token. Aborting upate.")
+					break
+
 			if response.status_code != 200:
 				logging.warning(f"Failed to fetch user info for user id {user_id}: {response.status_code} - {response.content.decode('utf-8')}")
 				continue
+
+			error_intervals = 0
 
 			# Convert stats to workable format
 			data = response.json()
