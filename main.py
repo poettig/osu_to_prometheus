@@ -79,7 +79,7 @@ def main():
 
 	error_tracker = ErrorTracker(config["max_intervals_with_errors"])
 
-	start_http_server(config["port"])
+	start_http_server(config["port"], config["host"])
 	access_token = get_token(config)
 
 	while True:
