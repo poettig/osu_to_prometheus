@@ -2,6 +2,8 @@ import argparse
 import json
 import logging
 import time
+
+import prometheus_client
 import requests
 
 from prometheus_client import start_http_server, Gauge
@@ -9,6 +11,10 @@ from prometheus_client import start_http_server, Gauge
 BASEURL = "https://osu.ppy.sh"
 API_PATH = "/api/v2"
 API_URL = f"{BASEURL}{API_PATH}"
+
+prometheus_client.REGISTRY.unregister(prometheus_client.PROCESS_COLLECTOR)
+prometheus_client.REGISTRY.unregister(prometheus_client.PLATFORM_COLLECTOR)
+prometheus_client.REGISTRY.unregister(prometheus_client.GC_COLLECTOR)
 
 labels = ["user_id", "username"]
 gauges = {
