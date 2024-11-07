@@ -183,7 +183,15 @@ def main():
 				stats[f"grade_counts_{key}"] = value
 
 			for key, value in stats.items():
-				if key in gauges:
+				if key not in gauges:
+					continue
+
+				if value is None:
+					# Check if labelset exists, remove it if found
+					for sample in gauges[key].collect()[0].samples:
+						if sample.labels == {"user_id": str(data["id"]), "username": data["username"]}:
+							gauges[key].remove(data["id"], data["username"])
+				else:
 					gauges[key].labels(user_id=data["id"], username=data["username"]).set(value)
 
 			logging.info(f"Update for user {data['username']} ({user_id}) completed.")
